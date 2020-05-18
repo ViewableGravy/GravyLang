@@ -1,0 +1,11 @@
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.exe
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.csprojAssemblyReference.cache
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.AssemblyInfoInputs.cache
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.AssemblyInfo.cs
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.deps.json
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.runtimeconfig.json
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.runtimeconfig.dev.json
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.dll
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.pdb
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.dll
+C:\Users\lleyt\source\repos\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.pdb
