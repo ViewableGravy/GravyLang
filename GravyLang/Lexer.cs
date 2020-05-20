@@ -11,12 +11,14 @@ namespace GravyLang
         //takes a line and returns it as a string[]
         public string[] Lex(string languageInput)
         {
-            
-            char[] expressionDelimiters = {'(', ')', '=', '+', '/', '-', '.', '[', ']', ':', '\"', ' ' };
+
+            string[] priorityDelimiters = {"\""};
+            char[] expressionDelimiters = {'(', ')', '=', '+', '/', '-', '.', '[', ']', ':', ';', ' ' };
             string[] statementDelimiters = { "if"};
             string[] typeDelimiters = { "int", "string" };
 
             string[] allDelimiters = Array.Empty<string>()
+                .Concat(priorityDelimiters)
                 .Concat(expressionDelimiters.Select(x => x.ToString()))
                 .Concat(statementDelimiters)
                 .Concat(typeDelimiters)
@@ -29,7 +31,7 @@ namespace GravyLang
             //split the string into tokens
             string[] tokens = indentation.Concat(InclusiveSplit(languageInput, allDelimiters.ToList())).ToArray();
             //add the new line
-            string[] finalTokens = tokens.Concat(new string[] { "/n" }).ToArray();
+            string[] finalTokens = tokens.ToList().Concat(new string[] { "/n" }).ToArray();
             //Generate token key value pairs
             Dictionary<string, string> tokenKeyValuePairs = GenerateTokenKeys(tokens);
             //return Lexical Analysis
@@ -96,9 +98,15 @@ namespace GravyLang
             {
                 for (int i = 0; i < result.Count; ++i)
                 {
-                    string[] temp = InclusiveSplit(result[i], new List<string>(delimiters));
-                    if (temp.Any())
-                        finalResults.AddRange(temp);
+                    if (result[i][0].ToString() != "\"")
+                    {
+                        string[] temp = InclusiveSplit(result[i], new List<string>(delimiters));
+                        if (temp.Any())
+                            finalResults.AddRange(temp);
+                    } else
+                    {
+                        finalResults.Add(result[i]);
+                    }
                 }
             }
 
@@ -108,24 +116,55 @@ namespace GravyLang
         private string[] InclusiveSplit(string input, string delimiter)
         {
             int previousIndex = 0;
-            while (previousIndex < input.Length)
-            {
-                int index = input.IndexOf(delimiter, previousIndex);
-                if (index == -1)
-                    break;
 
-                List<string> output = new List<string>();
-                if (index != -1 && ProcessDelimiter(input, delimiter, index))
-                {
-                    if (index != 0)
-                        output.Add(input.Substring(0, index).Trim());
-                    output.Add(delimiter);
-                    output = output.Concat(InclusiveSplit(input.Substring(index + delimiter.Length), delimiter)).ToList();
-                    return output.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-                }
-                previousIndex = index + delimiter.Length;
+            switch(delimiter)
+            {
+                case "\"":
+                    {
+                        int firstIndex = input.IndexOf(delimiter);
+                        if (firstIndex == -1)
+                            return new string[] { input.Trim() };
+
+                        int secondIndex = firstIndex;
+                        if(firstIndex + 1 < input.Length)
+                        {
+                            secondIndex = input.IndexOf("\"", firstIndex + 1);
+                            if(secondIndex == -1)
+                                return new string[] { input.Substring(0, firstIndex) };
+                        }
+
+                        List<string> output = new List<string>();
+                        if(firstIndex > 0)
+                            output.Add(input.Substring(0, firstIndex - 1));
+                        output.Add(input.Substring(firstIndex, secondIndex - firstIndex + 1));
+                        if (secondIndex + 1 < input.Length)
+                            output = output.Concat(InclusiveSplit(input.Substring(secondIndex + 2), delimiter)).ToList();
+
+                        return output.ToArray();
+                    }
+                default:
+                    {
+                        while (previousIndex < input.Length)
+                        {
+                            int index = input.IndexOf(delimiter, previousIndex);
+                            if (index == -1)
+                                break;
+
+                            List<string> output = new List<string>();
+                            if (ProcessDelimiter(input, delimiter, index))
+                            {
+                                if (index != 0)
+                                    output.Add(input.Substring(0, index));
+                                output.Add(delimiter);
+                                output = output.Concat(InclusiveSplit(input.Substring(index + delimiter.Length), delimiter)).ToList();
+                                return output.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                            }
+                            previousIndex = index + delimiter.Length;
+                        }
+                        return new string[] { input };
+                    }
             }
-            return new string[] { input.Trim() };
+            
         }
 
         private bool ProcessDelimiter(string input, string delimiter, int index)
@@ -133,7 +172,7 @@ namespace GravyLang
             //performs a check on the input based on the delimiter (e.g. if must have bracket after it and a space before it)
             switch (delimiter)
             {
-                case "if":
+               case "if":
                     {
                         if(index != 0)
                             if(input[index - 1] != ' ')

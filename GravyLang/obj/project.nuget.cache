@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "PHQzfPFZpykdmmkbBDVVUMRPK8+/BPE1guwpbVnjDJo6/6cYirHG4Y8aOvJbbzroJgjbdVAo3Ew4D1Qea3Iq4Q==",
+  "success": true,
+  "projectFilePath": "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\GravyLang.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.codeanalysis.fxcopanalyzers\\3.0.0\\microsoft.codeanalysis.fxcopanalyzers.3.0.0.nupkg.sha512",
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.codeanalysis.versioncheckanalyzer\\3.0.0\\microsoft.codeanalysis.versioncheckanalyzer.3.0.0.nupkg.sha512",
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.codequality.analyzers\\3.0.0\\microsoft.codequality.analyzers.3.0.0.nupkg.sha512",
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.netcore.analyzers\\3.0.0\\microsoft.netcore.analyzers.3.0.0.nupkg.sha512",
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.netframework.analyzers\\3.0.0\\microsoft.netframework.analyzers.3.0.0.nupkg.sha512",
+    "C:\\Users\\llmorris\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.2\\microsoft.aspnetcore.app.ref.3.1.2.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -20,3 +20,5 @@ C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.AssemblyInfo.cs
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.dll
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.pdb
+C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.csproj.CoreCompileInputs.cache
+C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.genruntimeconfig.cache
