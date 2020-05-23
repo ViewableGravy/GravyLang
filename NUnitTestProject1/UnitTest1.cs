@@ -12,33 +12,11 @@ namespace NUnitTestProject1
             lexer = new Lexer();
         }
 
-        [Test, MaxTime(2000)]
+        [Test]
         public void DelimitersNextToEachother()
         {
             Assert.AreEqual(new string[] { "0", ")", ")", ")", ")", "\n" }, lexer.Lex("))))"));
-
-
-            /*
-            Console.WriteLine("Test case 2");
-            foreach (string str in InclusiveSplit("this is:} a : string that :} is : meaningless :::", delimiters.ToList()))
-            {
-                Console.WriteLine(str);
-            }
-
-            Console.WriteLine("Test case 3");
-            foreach (string str in InclusiveSplit(") a", ")"))
-            {
-                Console.WriteLine(str);
-            }
-
-            Console.WriteLine("Test case 4");
-            foreach (string str in InclusiveSplit("if( thisif () else if ( that", delimiters.ToList()))
-            {
-                Console.WriteLine(str);
-            }
-            Console.WriteLine("------------------ Finished test execution ------------------");
-            Assert.Pass();
-            */
+            Assert.AreEqual(new string[] { "0", "this", "is", "\n"}, lexer.Lex("this  is  "));
         }
 
         [Test]
