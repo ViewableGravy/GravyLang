@@ -8,9 +8,12 @@ namespace GravyLang
         {
             Lexer lexer = new Lexer();
 
-            foreach(string str in lexer.Lex("int i=Function(\"random word\").test +1; if if;()if a( something) elseelse selse( else"))
+            foreach(string str in lexer.Lex("int i=Function(\"random word\").test +1; elseif if;()if a( something) elseelse selse( else"))
             {
-                Console.WriteLine("["+ str + "]");
+                if (str != "\n")
+                    Console.WriteLine("[" + str + "]");
+                else
+                    Console.WriteLine("[" + "\\n" + "]");
             }
             
         }

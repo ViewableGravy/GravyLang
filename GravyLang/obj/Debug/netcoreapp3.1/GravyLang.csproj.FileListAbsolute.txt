@@ -22,3 +22,14 @@ C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.pdb
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.csproj.CoreCompileInputs.cache
 C:\Projects\PersonalGithub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.genruntimeconfig.cache
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.exe
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.deps.json
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.runtimeconfig.json
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.runtimeconfig.dev.json
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.dll
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\bin\Debug\netcoreapp3.1\GravyLang.pdb
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.csprojAssemblyReference.cache
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.AssemblyInfoInputs.cache
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.AssemblyInfo.cs
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.dll
+C:\Users\lleyt\Desktop\Coding\GitHub\GravyLang\GravyLang\obj\Debug\netcoreapp3.1\GravyLang.pdb

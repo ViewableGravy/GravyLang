@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\GravyLang.csproj": {}
+    "C:\\Users\\lleyt\\Desktop\\Coding\\GitHub\\GravyLang\\GravyLang\\GravyLang.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\GravyLang.csproj": {
+    "C:\\Users\\lleyt\\Desktop\\Coding\\GitHub\\GravyLang\\GravyLang\\GravyLang.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\GravyLang.csproj",
+        "projectUniqueName": "C:\\Users\\lleyt\\Desktop\\Coding\\GitHub\\GravyLang\\GravyLang\\GravyLang.csproj",
         "projectName": "GravyLang",
-        "projectPath": "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\GravyLang.csproj",
-        "packagesPath": "C:\\Users\\llmorris\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\PersonalGithub\\GravyLang\\GravyLang\\obj\\",
+        "projectPath": "C:\\Users\\lleyt\\Desktop\\Coding\\GitHub\\GravyLang\\GravyLang\\GravyLang.csproj",
+        "packagesPath": "C:\\Users\\lleyt\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\lleyt\\Desktop\\Coding\\GitHub\\GravyLang\\GravyLang\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\llmorris\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\lleyt\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -58,18 +58,12 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[3.1.2, 3.1.2]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
         }
       }
     }
