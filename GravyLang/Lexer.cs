@@ -7,7 +7,8 @@ namespace GravyLang
 {
     public class Lexer
     {
-        
+
+        private bool stillString = false;
         //takes a line and returns it as a string[]
         public string[] Lex(string languageInput)
         {
@@ -30,9 +31,9 @@ namespace GravyLang
             //handle comments -- to be implemented
 
             //handle strings
-            string[] handleStrings = indentation.Concat(HandleString(languageInput)
+            string[] handleStrings = indentation.Concat(HandleStringMultiLine(languageInput)
                 .Where(s => !string.IsNullOrWhiteSpace(s))).ToArray();
-
+  
             //create tokens
             string[] tokens = handleStrings.Length > 1 ? indentation : handleStrings;
             for(int i = 1; i < handleStrings.Length; ++i)
@@ -65,30 +66,45 @@ namespace GravyLang
             return null;
         }
 
-        private string[] HandleString(string input)
+        private string[] HandleStringMultiLine(string input)
         {
             int firstIndex = input.IndexOf('"');
             if (firstIndex == -1)
                 return new string[] { input };
+            //else
 
             int secondIndex = firstIndex;
-            if (firstIndex + 1 < input.Length)
+            List<string> output;
+            if (stillString)
             {
-                secondIndex = input.IndexOf("\"", firstIndex + 1);
-                if (secondIndex == -1)
-                    return new string[] { input.Substring(0, firstIndex) };
+                stillString = false;
+                return new[] { "\"" + input.Substring(0, firstIndex) + "\"" }
+                    .Concat(HandleStringMultiLine(input.Substring(firstIndex + 1)))
+                    .ToArray();
             }
+            else
+            {
+                if (firstIndex + 1 < input.Length)
+                {
+                    secondIndex = input.IndexOf("\"", firstIndex + 1);
+                    if (secondIndex == -1)
+                    {
+                        stillString = true;
+                        return new string[] { input.Substring(0, firstIndex), "\"" + input.Substring(firstIndex + 1) + "\"" };
+                    }
+                }
 
-            List<string> output = new List<string>();
-            if (firstIndex > 0)
-                output.Add(input.Substring(0, firstIndex - 1));
-            output.Add(input.Substring(firstIndex, secondIndex - firstIndex + 1));
-            if (secondIndex + 1 < input.Length)
-                output = output.Concat(HandleString(input.Substring(secondIndex + 2))).ToList();
+                output = new List<string>();
+                if (firstIndex > 0)
+                    output.Add(input.Substring(0, firstIndex - 1));
+                output.Add(input.Substring(firstIndex, secondIndex - firstIndex + 1));
+                if (secondIndex + 1 < input.Length)
+                    output = output.Concat(HandleStringMultiLine(input.Substring(secondIndex + 1))).ToList();
 
-            return output.ToArray();
+                return output.ToArray();
+            }
         }
-        
+
         private string[] InclusiveSplit(string input, List<string> delimiters)
         {
             List<string> result = InclusiveSplit(input, delimiters.First()).ToList();
@@ -100,14 +116,12 @@ namespace GravyLang
             List<string> finalResults = new List<string>();
 
             if (result.Any())
-            {
                 for (int i = 0; i < result.Count; ++i)
                 {
                     string[] temp = InclusiveSplit(result[i], new List<string>(delimiters));
                     if (temp.Any())
                         finalResults.AddRange(temp);
                 }
-            }
 
             return finalResults.ToArray();
         }
@@ -136,7 +150,7 @@ namespace GravyLang
                     
         }
 
-        private bool ProcessDelimiter(string input, string delimiter, int index)
+        private static bool ProcessDelimiter(string input, string delimiter, int index)
         {
             //performs a check on the input based on the delimiter (e.g. if must have bracket after it and a space before it)
             switch (delimiter)
@@ -176,7 +190,7 @@ namespace GravyLang
             }
         }
 
-        bool StartOfStringIs(string input, string toCheckFor)
+        private static bool StartOfStringIs(string input, string toCheckFor)
         {
             for(int i = 0; i < toCheckFor.Length; ++i)
             {
@@ -186,7 +200,7 @@ namespace GravyLang
             return true;
         }
 
-        bool EndOfStringIs(string input, string toCheckFor)
+        private static bool EndOfStringIs(string input, string toCheckFor)
         {
             for (int i = input.Length - 1; i > input.Length - 1 - toCheckFor.Length; --i)
             {

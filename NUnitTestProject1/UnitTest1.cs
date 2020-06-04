@@ -1,22 +1,21 @@
 using GravyLang;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using System;
+using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 namespace NUnitTestProject1
 {
+    [TestFixture]
     public class Tests
     {
         Lexer lexer;
+
         [SetUp]
         public void Setup()
         {
             lexer = new Lexer();
-        }
-
-        [Test]
-        public void DelimitersNextToEachother()
-        {
-            Assert.AreEqual(new string[] { "0", ")", ")", ")", ")", "\n" }, lexer.Lex("))))"));
-            Assert.AreEqual(new string[] { "0", "this", "is", "\n"}, lexer.Lex("this  is  "));
         }
 
         [Test]
@@ -25,19 +24,27 @@ namespace NUnitTestProject1
             Assert.AreEqual(new string[] { "0", ")", "and", "is", ")", "\n" }, lexer.Lex(")and is)"));
         }
 
+        [TestCase(new[] { "0", ")", ")", ")", ")", "\n" }, "))))")]
+        [TestCase(new[] { "0", ":", ":", "something", ":", ":", "\n" }, "::something::")]
+        [TestCase(new[] { "0", "this", "is", "\n" }, "this  is  ")]
+        public void DelimitersNextToEachother(string[] output, string input)
+        {
+            Assert.AreEqual(output, lexer.Lex(input));
+        }
+
         [Test]
         public void multipleDelimiters()
         {
             Assert.AreEqual(new string[] { "0", ":", "other", ")", ":", "and", "\n" }, lexer.Lex(":other):and"));
         }
 
-        [Test]
-        public void indentation()
+        [TestCase(new[] { "0", "\n" }, "  ")]
+        [TestCase(new[] { "0", "\n" }, "")]
+        [TestCase(new[] { "2", "test", "\n" }, "  test")]
+        [TestCase(new[] { "4", "test", "\n" }, "    test")]
+        public void indentation(string[] output, string input)
         {
-            Assert.AreEqual(new string[] { "0","\n" }, lexer.Lex("  "));
-            Assert.AreEqual(new string[] { "0", "\n" }, lexer.Lex(""));
-            Assert.AreEqual(new string[] { "2", "test", "\n" }, lexer.Lex("  test"));
-            Assert.AreEqual(new string[] { "4", "test", "\n" }, lexer.Lex("    test"));
+            Assert.AreEqual(output, lexer.Lex(input));
         }
 
         [Test]
@@ -47,16 +54,68 @@ namespace NUnitTestProject1
         }
 
         [Test]
-        public void elseIfDelimiter()
+        public void MultipleStrings()
         {
-            Assert.AreEqual(new string[] { "0", "elseif", "if", "\n" }, lexer.Lex("elseif if"));
-            Assert.AreEqual(new string[] { "0", "else", "if", "\n" }, lexer.Lex("else if"));
+            Assert.AreEqual(new string[] { "0", "\"white space\"", ".", "\"more space\"", "\n" }, lexer.Lex("\"white space\" . \"more space\""));
+        }
+
+        [Test]
+        public void MultipleQuotes()
+        {
+            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\n" }, lexer.Lex("\"\"\"\""));
+        }
+
+        [Test]
+        public void MultipleQuotesOdd()
+        {
+            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\"", "\n" }, lexer.Lex("\"\"\"\"\""));
+        }
+
+        [Test]
+        public void StringsWithoutSecondQuote()
+        {
+            Assert.AreEqual(new string[] { "0", "\"white space\"", "\n" }, lexer.Lex("\"white space"));
+        }
+
+        [TestCase(new[] { "0", "elseif", "if", "\n" }, "elseif if")]
+        [TestCase(new[] { "0", "else", "if", "\n" }, "else if")]
+        public void elseIfDelimiter(string[] output, string input)
+        {
+            Assert.AreEqual(output, lexer.Lex(input));
         }
 
         [Test]
         public void doubleElseInName()
         {
             Assert.AreEqual(new string[] { "0", "elseelse", "\n" }, lexer.Lex("elseelse"));
+        }
+
+        [Test, Category("Multi-line string")]
+        public void MultiLineString()
+        {
+            var data = new Dictionary<string, string[]> {
+                { "\"multi line", new[] { "0", "\"multi line\"", "\n" } },
+                {"string\"", new[] { "0", "\"string\"", "\n" } }
+            };
+
+            foreach (KeyValuePair<string, string[]> InputOutput in data)
+            {
+                Assert.AreEqual(InputOutput.Value, lexer.Lex(InputOutput.Key));
+            }
+        }
+
+        [Test, Category("Multi-line string")]
+        public void FirstStringThenMultiLineString()
+        {
+            var data = new Dictionary<string, string[]> {
+               { "\"string\" followed by \"a multi", new[] { "0", "\"string\"", "followed", "by", "\"a multi\"", "\n" } },
+               {"line string\"", new[] { "0", "\"line string\"", "\n" } }
+            };
+
+            foreach (KeyValuePair<string, string[]> InputOutput in data)
+            {
+                Assert.AreEqual(InputOutput.Value, lexer.Lex(InputOutput.Key));
+            }
         }
     }
 }
