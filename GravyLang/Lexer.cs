@@ -25,8 +25,8 @@ namespace GravyLang
 
             //determine number of spaces of indentation
             string[] indentation = string.IsNullOrWhiteSpace(languageInput) ?
-                new string[] { "0" } :
-                new string[] { languageInput.TakeWhile(Char.IsWhiteSpace).Count().ToString() };
+                    new[] { "0" } :
+                    new[] { languageInput.TakeWhile(Char.IsWhiteSpace).Count().ToString() };
             
             //handle comments -- to be implemented
 
@@ -70,36 +70,42 @@ namespace GravyLang
         {
             int firstIndex = input.IndexOf('"');
             if (firstIndex == -1)
-                return new string[] { input };
+                return stillString ? new[] { $"\"{input}\"", "+" } : new[] { input };
             //else
 
-            int secondIndex = firstIndex;
-            List<string> output;
             if (stillString)
             {
                 stillString = false;
-                return new[] { "\"" + input.Substring(0, firstIndex) + "\"" }
+                return new[] { $"\"{ input.Substring(0, firstIndex) }\"" }
                     .Concat(HandleStringMultiLine(input.Substring(firstIndex + 1)))
                     .ToArray();
             }
             else
             {
+                int secondIndex = firstIndex;
+
                 if (firstIndex + 1 < input.Length)
-                {
-                    secondIndex = input.IndexOf("\"", firstIndex + 1);
-                    if (secondIndex == -1)
+                    if ((secondIndex = input.IndexOf("\"", firstIndex + 1)) == -1)
                     {
                         stillString = true;
-                        return new string[] { input.Substring(0, firstIndex), "\"" + input.Substring(firstIndex + 1) + "\"" };
+                        return new[] {
+                            input.Substring(0, firstIndex),
+                            $"\"{input.Substring(firstIndex + 1)}\"",
+                            "+"
+                        };
                     }
-                }
 
-                output = new List<string>();
+                List<string> output = new List<string>();
                 if (firstIndex > 0)
                     output.Add(input.Substring(0, firstIndex - 1));
                 output.Add(input.Substring(firstIndex, secondIndex - firstIndex + 1));
                 if (secondIndex + 1 < input.Length)
                     output = output.Concat(HandleStringMultiLine(input.Substring(secondIndex + 1))).ToList();
+                if (firstIndex + 1 == input.Length)
+                {
+                    stillString = true;
+                    output.Add("+");
+                }
 
                 return output.ToArray();
             }

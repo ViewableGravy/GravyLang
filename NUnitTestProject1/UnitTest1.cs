@@ -8,7 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 namespace NUnitTestProject1
 {
     [TestFixture]
-    public class Tests
+    public class LexerTests
     {
         Lexer lexer;
 
@@ -68,13 +68,13 @@ namespace NUnitTestProject1
         [Test]
         public void MultipleQuotesOdd()
         {
-            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\"", "\n" }, lexer.Lex("\"\"\"\"\""));
+            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\"", "+", "\n" }, lexer.Lex("\"\"\"\"\""));
         }
 
         [Test]
         public void StringsWithoutSecondQuote()
         {
-            Assert.AreEqual(new string[] { "0", "\"white space\"", "\n" }, lexer.Lex("\"white space"));
+            Assert.AreEqual(new string[] { "0", "\"white space\"", "+", "\n" }, lexer.Lex("\"white space"));
         }
 
         [TestCase(new[] { "0", "elseif", "if", "\n" }, "elseif if")]
@@ -90,32 +90,6 @@ namespace NUnitTestProject1
             Assert.AreEqual(new string[] { "0", "elseelse", "\n" }, lexer.Lex("elseelse"));
         }
 
-        [Test, Category("Multi-line string")]
-        public void MultiLineString()
-        {
-            var data = new Dictionary<string, string[]> {
-                { "\"multi line", new[] { "0", "\"multi line\"", "\n" } },
-                {"string\"", new[] { "0", "\"string\"", "\n" } }
-            };
-
-            foreach (KeyValuePair<string, string[]> InputOutput in data)
-            {
-                Assert.AreEqual(InputOutput.Value, lexer.Lex(InputOutput.Key));
-            }
-        }
-
-        [Test, Category("Multi-line string")]
-        public void FirstStringThenMultiLineString()
-        {
-            var data = new Dictionary<string, string[]> {
-               { "\"string\" followed by \"a multi", new[] { "0", "\"string\"", "followed", "by", "\"a multi\"", "\n" } },
-               {"line string\"", new[] { "0", "\"line string\"", "\n" } }
-            };
-
-            foreach (KeyValuePair<string, string[]> InputOutput in data)
-            {
-                Assert.AreEqual(InputOutput.Value, lexer.Lex(InputOutput.Key));
-            }
-        }
+        
     }
 }
