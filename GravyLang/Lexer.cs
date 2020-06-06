@@ -199,20 +199,16 @@ namespace GravyLang
         private static bool StartOfStringIs(string input, string toCheckFor)
         {
             for(int i = 0; i < toCheckFor.Length; ++i)
-            {
                 if (!input[i].Equals(toCheckFor[i]))
                     return false;
-            }
             return true;
         }
 
         private static bool EndOfStringIs(string input, string toCheckFor)
         {
             for (int i = input.Length - 1; i > input.Length - 1 - toCheckFor.Length; --i)
-            {
                 if (!input[i].Equals(toCheckFor[i - (input.Length - toCheckFor.Length)]))
                     return false;
-            }
             return true;
         }
     }
