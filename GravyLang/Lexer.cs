@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace GravyLang
@@ -9,6 +10,7 @@ namespace GravyLang
     {
 
         private bool stillString = false;
+        private bool stillComment = false;
         //takes a line and returns it as a string[]
         public string[] Lex(string languageInput)
         {
@@ -27,13 +29,15 @@ namespace GravyLang
             string[] indentation = string.IsNullOrWhiteSpace(languageInput) ?
                     new[] { "0" } :
                     new[] { languageInput.TakeWhile(Char.IsWhiteSpace).Count().ToString() };
-            
+
             //handle comments -- to be implemented
+            string handleComment = HandleComments(languageInput);
 
             //handle strings
-            string[] handleStrings = indentation.Concat(HandleStringMultiLine(languageInput)
-                .Where(s => !string.IsNullOrWhiteSpace(s))).ToArray();
-  
+            string[] handleStrings = handleComment.Length > 0 ?
+                indentation.Concat(HandleStringMultiLine(handleComment).Where(s => !string.IsNullOrWhiteSpace(s))).ToArray() :
+                indentation;
+
             //create tokens
             string[] tokens = handleStrings.Length > 1 ? indentation : handleStrings;
             for(int i = 1; i < handleStrings.Length; ++i)
@@ -64,6 +68,16 @@ namespace GravyLang
 
             //return TokenKeys
             return null;
+        }
+
+        private string HandleComments(string input)
+        {   
+            int firstIndex = input.IndexOf("//");
+            if (firstIndex == -1)
+                return input ;
+            if (!IsInString(input, firstIndex))
+                return firstIndex == 0 ? String.Empty : input.Substring(0, firstIndex - 1);
+            return input.Substring(0, firstIndex + 2) + HandleComments(input.Substring(firstIndex + 2));
         }
 
         private string[] HandleStringMultiLine(string input)
@@ -210,6 +224,11 @@ namespace GravyLang
                 if (!input[i].Equals(toCheckFor[i - (input.Length - toCheckFor.Length)]))
                     return false;
             return true;
+        }
+
+        private bool IsInString(string input, int index)
+        {
+            return input.Substring(0, index).Count(c => c == '"') % 2 == (stillString ? 0 : 1);
         }
     }
 }
