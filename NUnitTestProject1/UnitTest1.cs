@@ -90,6 +90,12 @@ namespace LexerTests
             Assert.AreEqual(new string[] { "0", "elseelse", "\n" }, lexer.Lex("elseelse"));
         }
 
-        
+        [Test]
+        public void SlashNInLine()
+        {
+            Assert.AreEqual(new string[] { "0", "\n", "\n" }, lexer.Lex("\n"));
+        }
+
+
     }
 }

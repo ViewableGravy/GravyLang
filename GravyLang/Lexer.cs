@@ -28,14 +28,16 @@ namespace GravyLang
             //determine number of spaces of indentation
             string[] indentation = string.IsNullOrWhiteSpace(languageInput) ?
                     new[] { "0" } :
-                    new[] { languageInput.TakeWhile(Char.IsWhiteSpace).Count().ToString() };
+                    new[] { languageInput.TakeWhile((c => c != '\n'))
+                    .TakeWhile(Char.IsWhiteSpace)
+                    .Count().ToString() };
 
             //handle comments -- to be implemented
-            string handleComment = HandleComments(languageInput);
+            string handleComment = HandleMultiLineComments(languageInput);
 
             //handle strings
             string[] handleStrings = handleComment.Length > 0 ?
-                indentation.Concat(HandleStringMultiLine(handleComment).Where(s => !string.IsNullOrWhiteSpace(s))).ToArray() :
+                indentation.Concat(HandleStringMultiLine(handleComment).Where(s => s == "\n" || !string.IsNullOrWhiteSpace(s))).ToArray() :
                 indentation;
 
             //create tokens
@@ -76,8 +78,29 @@ namespace GravyLang
             if (firstIndex == -1)
                 return input ;
             if (!IsInString(input, firstIndex))
-                return firstIndex == 0 ? String.Empty : input.Substring(0, firstIndex - 1);
+                return firstIndex == 0 ? String.Empty : input.Substring(0, firstIndex);
             return input.Substring(0, firstIndex + 2) + HandleComments(input.Substring(firstIndex + 2));
+        }
+
+        private string HandleMultiLineComments(string input)
+        {
+            int endIndex = input.IndexOf("*/");
+            if (stillComment)
+                return (stillComment = endIndex == -1) ? String.Empty : HandleMultiLineComments(input.Substring(endIndex + 2));
+
+            int firstIndex = input.IndexOf("/*");
+            if (firstIndex != -1)
+                if (!IsInString(input, firstIndex))
+                    return (stillComment = endIndex == -1) ?
+                        input.Substring(0,firstIndex) :
+                        firstIndex == 0 ?
+                            input.Substring(endIndex + 2) :
+                            input.Substring(0, firstIndex) + HandleMultiLineComments(input.Substring(endIndex + 2));
+                else
+                    return input.Substring(0, firstIndex + 2) + HandleMultiLineComments(input.Substring(firstIndex + 2));
+         
+
+            return HandleComments(input);
         }
 
         private string[] HandleStringMultiLine(string input)

@@ -9,7 +9,7 @@ namespace GravyLang
         {
             Lexer lexer = new Lexer();
 
-            foreach (string str in lexer.Lex("int i=Function(\"random word\").test +1; elseif if;()if a( something) elseelse selse( else \"unfinished string "))
+            foreach (string str in lexer.Lex("/* multi line"))
             {
                 if (str != "\n")
                     Console.WriteLine("[" + str + "]");
@@ -17,7 +17,7 @@ namespace GravyLang
                     Console.WriteLine("[" + "\\n" + "]");
             }
 
-            foreach (string str in lexer.Lex("     rest of string\" wow this works\" test \"?!"))
+            foreach (string str in lexer.Lex("comment */ after comment with \"quote something //with comment /*comment*/\""))
             {
                 if (str != "\n")
                     Console.WriteLine("[" + str + "]");
