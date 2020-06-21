@@ -25,6 +25,25 @@ namespace GravyLang
                     Console.WriteLine("[" + "\\n" + "]");
             }
 
+            Console.WriteLine("-------------End of Normal Lexer--------------");
+
+            LoopStyleLexer lexer2 = new LoopStyleLexer();
+
+            foreach(string str in lexer2.Lex("\"testing\" that strings \"work properly with"))
+            {
+                Console.WriteLine("[" + str + "]");
+            }
+
+            foreach (string str in lexer2.Lex("multi line"))
+            {
+                Console.WriteLine("[" + str + "]");
+            }
+
+            foreach (string str in lexer2.Lex("strings and stuff\""))
+            {
+                Console.WriteLine("[" + str + "]");
+            }
+
         }
     }
 }
