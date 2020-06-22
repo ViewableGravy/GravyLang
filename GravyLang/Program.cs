@@ -11,37 +11,21 @@ namespace GravyLang
 
             foreach (string str in lexer.Lex("/* multi line"))
             {
-                if (str != "\n")
-                    Console.WriteLine("[" + str + "]");
-                else
-                    Console.WriteLine("[" + "\\n" + "]");
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
 
             foreach (string str in lexer.Lex("comment */ after comment with \"quote something //with comment /*comment*/\""))
             {
-                if (str != "\n")
-                    Console.WriteLine("[" + str + "]");
-                else
-                    Console.WriteLine("[" + "\\n" + "]");
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
 
             Console.WriteLine("-------------End of Normal Lexer--------------");
 
             LoopStyleLexer lexer2 = new LoopStyleLexer();
 
-            foreach(string str in lexer2.Lex("\"testing\" that strings \"work properly with"))
+            foreach(string str in lexer2.Lex(")))))"))
             {
-                Console.WriteLine("[" + str + "]");
-            }
-
-            foreach (string str in lexer2.Lex("multi line"))
-            {
-                Console.WriteLine("[" + str + "]");
-            }
-
-            foreach (string str in lexer2.Lex("strings and stuff\""))
-            {
-                Console.WriteLine("[" + str + "]");
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
 
         }

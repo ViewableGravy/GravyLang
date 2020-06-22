@@ -19,15 +19,15 @@ namespace GravyLang
         String
     }
 
-    class LoopStyleLexer
+    public class LoopStyleLexer
     {
 
-        PreviousDelimiter previousDelimiter = new PreviousDelimiter() { del = "", index = 0 };
+        PreviousDelimiter previousDelimiter = new PreviousDelimiter() { del = "Delimiter_Not_Set", index = 0 };
         LexerMode lexerMode = LexerMode.Normal;
 
         public IEnumerable Lex(string input) {
             
-            char[] expressionDelimiters = { '(', ')', '=', '+', '/', '-', '!', '?', '.', '[', ']', ':', ';', ' '};
+            char[] expressionDelimiters = { '(', ')', '=', '+', '/', '-', '!', '?', '.', '[', ']', ':', ';'};
             string[] statementDelimiters = { "if", "else" };
             string[] typeDelimiters = { "int", "string" };
 
@@ -43,94 +43,118 @@ namespace GravyLang
                     .TakeWhile(Char.IsWhiteSpace)
                     .Count().ToString();
 
+            input = input.Trim(' ');
+
             for (int i = 0; i < input.Length; ++i) {
+                bool finalIndex = (i + 1 == input.Length);
                 switch (lexerMode)
                 {
                     case LexerMode.String:
-                    {
-                        if (input[i] == '"')
                         {
-                            var previousDel = previousDelimiter;
-                            previousDelimiter.index = i;
-                            lexerMode = LexerMode.Normal;
-
-                            string substring = input.Substring(previousDel.index, i + 1 - previousDel.index);
-
-                            StringBuilder str = new StringBuilder();
-                            str.Append(substring);
-
-                            if (previousDel.del.Equals("Multi_Line_String"))
-                                str.Insert(0,'"');
-
-                            yield return str.ToString();
-
-                            continue;
-                        }
-
-                        //Is end of line and an unfinished string
-                        if (i + 1 == input.Length)
-                        {
-                            var previousDel = previousDelimiter;
-
-                            string substring = input.Substring(previousDel.index, i + 1 - previousDel.index);
-                            StringBuilder str = new StringBuilder();
-                            
-                            str.Append(substring);
-                            if (previousDel.del.Equals("Multi_Line_String"))
-                                str.Insert(0, '"');
-                            str.Append('"');
-
-                            previousDelimiter.del = "Multi_Line_String";
-
-                            yield return str.ToString();
-                            yield return "+";
-                        }
-                       
-                        break;
-                    }
-                    case LexerMode.Comment:
-                    {
-                        //to implement
-                        break;
-                    }
-                    case LexerMode.Normal:
-                    {
-                        if(input[i] == '"')
-                        {
-                            previousDelimiter = new PreviousDelimiter() { del = "\"", index = i };
-                            lexerMode = LexerMode.String;
-                            continue;
-                        }
-
-                        if (input[i] == ' ')
-                        {
-                            string substring = input.Substring(previousDelimiter.index + 1, i - previousDelimiter.index - 1);
-                            previousDelimiter.index = i;
-                            previousDelimiter.del = " ";
-                                
-                            if (substring == "\n" || !string.IsNullOrWhiteSpace(substring))
-                                yield return substring;
-                            continue;
-                        }
-
-                        foreach (string del in allDelimiters)
-                            if (del.Equals(input[i])) 
+                            if (input[i] == '"' && i != previousDelimiter.index)
                             {
+                                string substring = i - 1 == previousDelimiter.index ?
+                                    "\"\"" :
+                                    input.Substring(previousDelimiter.index, i + 1 - previousDelimiter.index);
+
                                 var previousDel = previousDelimiter;
                                 previousDelimiter.index = i;
-                                previousDelimiter.del = del;
+                                lexerMode = LexerMode.Normal;
 
-                                yield return del;
-                                yield return input.Substring(previousDel.index + 1, i - previousDel.index);
+                                StringBuilder str = new StringBuilder();
+                                str.Append(substring);
+
+                                if (previousDel.del.Equals("Multi_Line_String"))
+                                    str.Insert(0,'"');
+
+                                yield return str.ToString();
+                            } 
+                            else if (finalIndex)
+                            {
+                                string substring = input.Substring(previousDelimiter.index, i + 1 - previousDelimiter.index);
+                                StringBuilder str = new StringBuilder();
+                            
+                                str.Append(substring);
+                                if (previousDelimiter.del.Equals("Multi_Line_String"))
+                                    str.Insert(0, '"');
+                                str.Append('"');
+
+                                previousDelimiter.del = "Multi_Line_String";
+
+                                yield return str.ToString();
+                                yield return "+";
                             }
-                        
-                        break;
-                    }
+                       
+                            break;
+                        }
+                    case LexerMode.Comment:
+                        {
+                            //to implement
+                            break;
+                        }
+                    case LexerMode.Normal:
+                        {
+                            if (input[i] == '"')
+                            {
+                                previousDelimiter = new PreviousDelimiter() { del = "\"", index = i };
+                                lexerMode = LexerMode.String;
+                                if (finalIndex)
+                                    goto case LexerMode.String;
+                                
+                                break;
+                            }
+                            //else if comment (need to implement full string checking method first)
+                            else if (input[i] == ' ')
+                            {
+                                string substring = previousDelimiter.del == "Delimiter_Not_Set" ?
+                                        input.Substring(0, i) :
+                                        input.Substring(previousDelimiter.index + 1, i - previousDelimiter.index - 1);
+
+                                previousDelimiter.index = i;
+                                previousDelimiter.del = " ";
+
+                                if (substring == "\n" || !string.IsNullOrWhiteSpace(substring))
+                                    yield return substring;
+                                break;
+                            }
+                            else
+                            {
+                                bool exit = false;
+                                foreach (string del in allDelimiters)
+                                {
+                                    if (input[i].ToString().Equals(del))
+                                    {
+                                        var previousDel = previousDelimiter;
+                                        previousDelimiter.index = i;
+                                        previousDelimiter.del = del;
+
+                                        if (previousDel.index == i - 1)
+                                            yield return del;
+                                        else if (previousDel.del == "Delimiter_Not_Set")
+                                            yield return input.Substring(0, i + 1);
+                                        else
+                                        {
+                                            yield return input.Substring(previousDel.index + 1, i - previousDel.index - 1);
+                                            yield return del;
+                                        }
+                                        exit = true;
+                                        break ;
+                                    }
+                                }
+                                if (exit)
+                                    break;
+                            }
+
+                            if (finalIndex)
+                                yield return previousDelimiter.index == 0 ? input : input.Substring(previousDelimiter.index + 1);
+                            break;
+                        }
                 }
-                if (i + 1 == input.Length)
+
+                if (finalIndex)
                     previousDelimiter.index = 0;
             }
-            yield return "\\n";
+            yield return "\n";
         }
     }
 }

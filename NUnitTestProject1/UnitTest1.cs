@@ -10,12 +10,12 @@ namespace LexerTests
     [TestFixture]
     public class LexerTests
     {
-        Lexer lexer;
+        LoopStyleLexer lexer;
 
         [SetUp]
         public void Setup()
         {
-            lexer = new Lexer();
+            lexer = new LoopStyleLexer();
         }
 
         [Test]
@@ -50,6 +50,7 @@ namespace LexerTests
         [Test]
         public void touchingIfDelimiter()
         {
+            //test actual touching lol
             Assert.AreEqual(new string[] { "0", "(", ")", "ifelse", "if", "\n" }, lexer.Lex("()ifelse if"));
         }
 
@@ -68,7 +69,7 @@ namespace LexerTests
         [Test]
         public void MultipleQuotesOdd()
         {
-            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\"", "+", "\n" }, lexer.Lex("\"\"\"\"\""));
+            Assert.AreEqual(new string[] { "0", "\"\"", "\"\"", "\"\"", "+", "\n" }, lexer.Lex("\"\"\"\"\""));
         }
 
         [Test]

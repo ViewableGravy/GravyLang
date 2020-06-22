@@ -10,12 +10,12 @@ namespace LexerTests
     [TestFixture]
     class MultiLineStringTests
     {
-        Lexer lexer;
+        LoopStyleLexer lexer;
 
         [SetUp]
         public void Setup()
         {
-            lexer = new Lexer();
+            lexer = new LoopStyleLexer();
         }
 
         [Test, Category("Multi-line string")]
