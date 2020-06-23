@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
+using System.Threading.Channels;
 
 namespace GravyLang
 {
@@ -19,6 +23,19 @@ namespace GravyLang
         String
     }
 
+    struct StringAfterIndexResult
+    {
+        public bool found;
+        public PreviousDelimiter? previousDelimiterInformation;
+    }
+
+    struct Delimiter
+    {
+        public string[] PreMatch;
+        public string toMatch;
+        public string[] PostMatch;
+    }
+
     public class LoopStyleLexer
     {
 
@@ -26,15 +43,48 @@ namespace GravyLang
         LexerMode lexerMode = LexerMode.Normal;
 
         public IEnumerable Lex(string input) {
-            
-            char[] expressionDelimiters = { '(', ')', '=', '+', '/', '-', '!', '?', '.', '[', ']', ':', ';'};
-            string[] statementDelimiters = { "if", "else" };
-            string[] typeDelimiters = { "int", "string" };
+
+            Delimiter[] __Updated_Delimiters__ = {
+                new Delimiter() { toMatch = " " },
+                new Delimiter() { toMatch = "(" },
+                new Delimiter() { toMatch = ")" },
+                new Delimiter() { toMatch = "=" },
+                new Delimiter() { toMatch = "+" },
+                new Delimiter() { toMatch = "/" },
+                new Delimiter() { toMatch = "-" },
+                new Delimiter() { toMatch = "*" },
+                new Delimiter() { toMatch = "!" },
+                new Delimiter() { toMatch = "?" },
+                new Delimiter() { toMatch = "." },
+                new Delimiter() { toMatch = "[" },
+                new Delimiter() { toMatch = "]" },
+                new Delimiter() { toMatch = ":" },
+                new Delimiter() { toMatch = ";" },
+                new Delimiter() { 
+                    toMatch = "int", 
+                    PreMatch = new[] { " ", "(" }, 
+                    PostMatch = new[] { " ", ")" } 
+                },
+                new Delimiter() {
+                    toMatch = "if",
+                    PreMatch = new[] { " ", "(", "else" },
+                    PostMatch = new[] { " ", "(" }
+                }
+                //new Delimiter() {
+                //    toMatch = "else",
+                //    PreMatch = new[] { " " },
+                //    PostMatch = new[] { " " }
+                //}
+            };
+
+            char[] expressionDelimiters = { '(', ')', '=', '+', '/', '-', '*', '!', '?', '.', '[', ']', ':', ';'};
+            //string[] statementDelimiters = { "if", "else" };
+            //string[] typeDelimiters = { "int", "string" };
 
             string[] allDelimiters = Array.Empty<string>()
                 .Concat(expressionDelimiters.Select(x => x.ToString()))
-                .Concat(statementDelimiters)
-                .Concat(typeDelimiters)
+                //.Concat(statementDelimiters)
+                //.Concat(typeDelimiters)
                 .ToArray();
 
             yield return string.IsNullOrWhiteSpace(input) ?
@@ -120,34 +170,76 @@ namespace GravyLang
                             else
                             {
                                 bool exit = false;
-                                foreach (string del in allDelimiters)
+                                foreach (Delimiter delimiter in __Updated_Delimiters__)
                                 {
-                                    if (input[i].ToString().Equals(del))
+                                    StringAfterIndexResult result = Compare(input, i, delimiter.toMatch);
+
+                                    bool Matching = result.found;
+
+                                    //check that preMatch is successful
+                                    if (delimiter.PreMatch != null && Matching)
                                     {
+                                        Matching = false;
+
+                                        i -= delimiter.PreMatch.Length;
+                                        foreach(string PreDelimiter in delimiter.PreMatch)
+                                        {
+                                            StringAfterIndexResult PreMatchresult = Compare(input, i, PreDelimiter);
+                                            if (PreMatchresult.found == true)
+                                            {
+                                                Matching = true;
+                                                break;
+                                            }  
+                                        }
+                                    }
+
+                                    //check that PostMatch is successful
+                                    if (delimiter.PostMatch != null && Matching)
+                                    {
+                                        Matching = false;
+                                        i += delimiter.toMatch.Length;
+                                        foreach (string PostDelimiter in delimiter.PostMatch)
+                                        {
+                                            StringAfterIndexResult PostMatchresult = Compare(input, i, PostDelimiter);
+                                            if (PostMatchresult.found == true)
+                                            {
+                                                Matching = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if(Matching)
+                                    {
+                                        //if you made it here then it's a match, Congratulations
                                         var previousDel = previousDelimiter;
-                                        previousDelimiter.index = i;
-                                        previousDelimiter.del = del;
+                                        previousDelimiter.index = result.previousDelimiterInformation.Value.index;
+                                        previousDelimiter.del = result.previousDelimiterInformation.Value.del;
 
                                         if (previousDel.index == i - 1)
-                                            yield return del;
+                                            yield return delimiter.toMatch;
                                         else if (previousDel.del == "Delimiter_Not_Set")
-                                            yield return input.Substring(0, i + 1);
+                                        {
+                                            if (i != 0)
+                                                yield return input.Substring(0, i);
+                                            yield return delimiter.toMatch;
+                                        }
                                         else
                                         {
                                             yield return input.Substring(previousDel.index + 1, i - previousDel.index - 1);
-                                            yield return del;
+                                            yield return delimiter.toMatch;
                                         }
                                         exit = true;
-                                        break ;
+                                        break;
                                     }
                                 }
-                                if (exit)
+                                if(exit)
                                     break;
                             }
-
-                            if (finalIndex)
+                            
+                           if (finalIndex)
                                 yield return previousDelimiter.index == 0 ? input : input.Substring(previousDelimiter.index + 1);
-                            break;
+                           break;
                         }
                 }
 
@@ -155,6 +247,29 @@ namespace GravyLang
                     previousDelimiter.index = 0;
             }
             yield return "\n";
+        }
+
+        private StringAfterIndexResult Compare(string input, int startIndex, string delimiter)
+        {
+            int i = startIndex;
+            if (input[i] == delimiter.First())
+                foreach (char chr in delimiter)
+                {
+                    if (i < input.Length)
+                        if (input[i] == chr && chr == delimiter.Last())
+                            return new StringAfterIndexResult
+                            {
+                                found = true,
+                                previousDelimiterInformation =
+                                    new PreviousDelimiter() { del = delimiter, index = i }
+                            };
+                        else
+                            break;
+                    i++;
+                }
+
+            return new StringAfterIndexResult { found = false };
+
         }
     }
 }

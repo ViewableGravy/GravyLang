@@ -92,11 +92,16 @@ namespace LexerTests
         }
 
         [Test]
+        public void DelimiterOtherThanSpaceOnNoPreviousDelimiter()
+        {
+            Assert.AreEqual(new string[] { "0", "temp", "*", "temp", "\n" }, lexer.Lex("temp*temp"));
+        }
+
+        [Test]
         public void SlashNInLine()
         {
             Assert.AreEqual(new string[] { "0", "\n", "\n" }, lexer.Lex("\n"));
         }
-
 
     }
 }
