@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.ConstrainedExecution;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Channels;
 
 namespace GravyLang
 {
@@ -16,10 +13,11 @@ namespace GravyLang
         public int index;
     }
 
-    enum LexerMode
+    public enum LexerMode
     {
         Normal,
         Comment,
+        MultiComment,
         String
     }
 
@@ -36,11 +34,307 @@ namespace GravyLang
         public string[] PostMatch;
     }
 
+    public class Itr : IEnumerator, IEnumerable
+    {
+        private string line;
+        private LexerMode mode;
+        private int index = -1;
+        private bool multiLineString = false;
+        private bool multiLineComment = false;
+
+
+
+        public LexerMode Mode 
+        { 
+            get => mode;
+            set
+            {
+                if (value == LexerMode.Comment && this.mode == LexerMode.String)
+                    throw new InvalidOperationException();
+                mode = value;
+            }
+        }
+        public int Index { get => index; }
+        public string Line 
+        { 
+            set 
+            {
+                if (line != null && Index != line.Length && index != -1)
+                    throw new InvalidOperationException("Line was not yet finished processing");
+                line = value;
+            }
+        }
+
+        public bool MoveNext()
+        {
+            index++;
+            return (index < line.Length);
+        }
+
+        public void Reset()
+        {
+            index = -1;
+        }
+
+        object IEnumerator.Current
+        {
+            get {
+                return line[index];
+            }
+        }
+
+        public bool MultiLineString 
+        { 
+            get => multiLineString; 
+            set
+            {
+                if (multiLineComment)
+                    throw new InvalidOperationException("Cannot have multi-line string/comment at the same time");
+                multiLineString = value;
+            }
+        }
+
+        public bool MultiLineComment 
+        { 
+            get => multiLineComment;
+            set
+            {
+                if (multiLineString)
+                    throw new InvalidOperationException("Cannot have multi-line string/comment at the same time");
+                multiLineComment = value;
+            }
+        }
+
+        public char Current()
+        {
+            return line[index];
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            foreach (char c in line)
+            {
+                yield return c;
+            }
+        }
+
+        public char PeekForward(int i)
+        {
+            if (index + i < line.Length)
+                return line[index + i];
+            throw new IndexOutOfRangeException();
+        }
+
+        public static bool operator ==(Itr itr, string str)
+        {
+            if (str[0] != itr.Current())
+                return false;
+            if (itr.index + str.Length > itr.line.Length)
+                return false;
+            for (int i = 1; i < str.Length; ++i)
+                if (!str[i].Equals(itr.PeekForward(i)))
+                    return false;
+            return true;
+        }
+
+        public static bool operator !=(Itr itr, string str)
+        {
+            return !(itr == str);
+        }
+    }
+
     public class LoopStyleLexer
     {
 
         PreviousDelimiter previousDelimiter = new PreviousDelimiter() { del = "Delimiter_Not_Set", index = 0 };
         LexerMode lexerMode = LexerMode.Normal;
+
+        Itr itr = new Itr();
+        StringBuilder currentItem = new StringBuilder();
+
+        Delimiter[] __Updated_Delimiters__ = {
+                //new Delimiter() { toMatch = " " }, special case
+                new Delimiter() { toMatch = "(" },
+                new Delimiter() { toMatch = ")" },
+                new Delimiter() { toMatch = "=" },
+                new Delimiter() { toMatch = "+" },
+                new Delimiter() { toMatch = "/" },
+                new Delimiter() { toMatch = "-" },
+                new Delimiter() { toMatch = "*" },
+                new Delimiter() { toMatch = "!" },
+                new Delimiter() { toMatch = "?" },
+                new Delimiter() { toMatch = "." },
+                new Delimiter() { toMatch = "[" },
+                new Delimiter() { toMatch = "]" },
+                new Delimiter() { toMatch = ":" },
+                new Delimiter() { toMatch = ";" },
+                new Delimiter() {
+                    toMatch = "int",
+                    PreMatch = new[] { " ", "(" },
+                    PostMatch = new[] { " ", ")" }
+                },
+                new Delimiter() {
+                    toMatch = "if",
+                    PreMatch = new[] { " ", "(", "else" },
+                    PostMatch = new[] { " ", "(" }
+                }
+                //new Delimiter() {
+                //    toMatch = "else",
+                //    PreMatch = new[] { " " },
+                //    PostMatch = new[] { " " }
+                //}
+            };
+
+        public IEnumerable Lex2(string input)
+        {
+            itr.Line = TrimWhiteSpace(input, itr);
+
+            while(itr.MoveNext())
+            { 
+                switch (itr.Mode)
+                {
+                    case LexerMode.Normal: 
+                        foreach (var result in NormalMode(itr))
+                            yield return result;
+                        break;
+                    case LexerMode.String:
+                        foreach (var result in StringMode(itr))
+                            yield return result;
+                        break;
+                    case LexerMode.Comment:
+                    case LexerMode.MultiComment:
+                        CommentMode(itr);
+                        break;
+                }
+            }
+
+            itr.Reset();
+        }
+
+        private bool MatchDelimiter(Delimiter[] delimiters, Itr itr)
+        {
+            foreach (Delimiter del in delimiters)
+                if (del.toMatch.Equals(itr.Current().ToString()))
+                    return true;
+            return false;
+        }
+
+        private IEnumerable<string> NormalMode(Itr itr)
+        {
+            if (!SwitchMode(itr.Mode))
+            {
+                //check if white space (to discard)
+                if(' '.Equals(itr.Current()))
+                {
+                    if(currentItem.Length > 0)
+                    {
+                        yield return currentItem.ToString();
+                        currentItem.Clear();
+                    }
+                } 
+                else
+                {
+                    if (MatchDelimiter(__Updated_Delimiters__, itr))
+                    {
+                        if (currentItem.Length > 0)
+                        {
+                            yield return currentItem.ToString();
+                            currentItem.Clear();
+                        }
+                        yield return itr.Current().ToString();
+                    }
+                    else
+                    {
+                        currentItem.Append(itr.Current());
+                    }
+                } 
+            }
+        }
+
+        private IEnumerable StringMode(Itr itr)
+        {
+            return null;
+        }
+
+        private void CommentMode(Itr itr)
+        {
+            SwitchMode(itr.Mode);
+        }
+
+        /// <summary>
+        /// Switches lexing mode if necessary, returns true if switch was performed
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        private bool SwitchMode(LexerMode mode)
+        {
+            if (mode == LexerMode.Normal)
+            {
+                if ('"'.Equals(itr.Current()))
+                {
+                    itr.Mode = LexerMode.String;
+                    currentItem.Append(itr.Current());
+                    return true;
+                }
+                if ('/'.Equals(itr.Current())) {
+                    if ('/'.Equals(itr.PeekForward(1))) {
+                        itr.Mode = LexerMode.Comment;
+                        return true;
+                    }
+                    if ('*'.Equals(itr.PeekForward(1)))
+                    {
+                        itr.Mode = LexerMode.MultiComment;
+                        return true;
+                    }
+                }
+            }
+            else if (mode == LexerMode.String)
+            {
+
+            }
+            else
+            {
+                if (mode == LexerMode.Comment)
+                {
+                    if(itr.Index == -1)
+                    {
+                        itr.Mode = LexerMode.Normal;
+                        return true;
+                    }
+                }
+                else if (mode == LexerMode.MultiComment)
+                {
+                    if(itr == "*/")
+                    {
+                        itr.Mode = LexerMode.Normal;
+                        itr.MoveNext(); //move to '/' 
+                        return true;
+                    }
+                    //return itr.Equals("*/");
+                    //return '*'.Equals(itr.Current()) && '/'.Equals(itr.PeekForward(1));
+                }
+            }
+            
+            return false;
+        }
+
+        private static string TrimWhiteSpace(string input, Itr itr)
+        {
+            if (input == null)
+                throw new NullReferenceException("input cannot be null");
+            if (itr.Mode != LexerMode.String)
+                return input.TrimStart();
+            return input;
+        }
+
+        private bool MatchDelimiter(Itr itr)
+        {
+            //itr.current == [0] of any delimiters
+            //from those: itr.current == [1], repeat
+            //delimiter.length <? check pre del
+            //check post del
+            throw new NotImplementedException();
+        }
 
         public IEnumerable Lex(string input) {
 
@@ -76,16 +370,6 @@ namespace GravyLang
                 //    PostMatch = new[] { " " }
                 //}
             };
-
-            char[] expressionDelimiters = { '(', ')', '=', '+', '/', '-', '*', '!', '?', '.', '[', ']', ':', ';'};
-            //string[] statementDelimiters = { "if", "else" };
-            //string[] typeDelimiters = { "int", "string" };
-
-            string[] allDelimiters = Array.Empty<string>()
-                .Concat(expressionDelimiters.Select(x => x.ToString()))
-                //.Concat(statementDelimiters)
-                //.Concat(typeDelimiters)
-                .ToArray();
 
             yield return string.IsNullOrWhiteSpace(input) ?
                     "0" :
@@ -144,6 +428,7 @@ namespace GravyLang
                         }
                     case LexerMode.Normal:
                         {
+                            //start of string
                             if (input[i] == '"')
                             {
                                 previousDelimiter = new PreviousDelimiter() { del = "\"", index = i };

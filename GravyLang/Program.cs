@@ -19,11 +19,21 @@ namespace GravyLang
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
 
-            Console.WriteLine("-------------End of Normal Lexer--------------");
+            Console.WriteLine("-------------Start of lexer 2--------------");
 
             LoopStyleLexer lexer2 = new LoopStyleLexer();
 
             foreach(string str in lexer2.Lex(")))))"))
+            {
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+            }
+
+            Console.WriteLine("-------------Start of lexer 3--------------");
+            foreach (string str in lexer2.Lex2("and?????this(us)/*something*/after/*"))
+            {
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+            }
+            foreach (string str in lexer2.Lex2("some other?thing*/onlythingonthisline ///* //something */"))
             {
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
