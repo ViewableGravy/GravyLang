@@ -125,6 +125,13 @@ namespace GravyLang
             throw new IndexOutOfRangeException();
         }
 
+        public char PeekBackward(int i)
+        {
+            if (index - i > -1)
+                return line[index - i];
+            throw new IndexOutOfRangeException();
+        }
+
         public static bool operator ==(Itr itr, string str)
         {
             if (str[0] != itr.Current())
@@ -176,7 +183,7 @@ namespace GravyLang
                 new Delimiter() {
                     toMatch = "if",
                     PreMatch = new[] { " ", "(", "else" },
-                    PostMatch = new[] { " ", "(" }
+                    PostMatch = new[] { "\\w" }
                 }
                 //new Delimiter() {
                 //    toMatch = "else",
@@ -249,11 +256,18 @@ namespace GravyLang
                     }
                 } 
             }
+            else
+            {
+                if(itr.Current() != ' ' && currentItem.Length > 0)
+                    yield return PopString(currentItem);
+                if (itr.Mode == LexerMode.String)
+                    currentItem.Append(itr.Current());
+            }
         }
 
         private IEnumerable StringMode(Itr itr)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
         private void CommentMode(Itr itr)
@@ -273,7 +287,6 @@ namespace GravyLang
                 if ('"'.Equals(itr.Current()))
                 {
                     itr.Mode = LexerMode.String;
-                    currentItem.Append(itr.Current());
                     return true;
                 }
                 if ('/'.Equals(itr.Current())) {
@@ -290,7 +303,7 @@ namespace GravyLang
             }
             else if (mode == LexerMode.String)
             {
-
+                throw new NotImplementedException("Have not implemented string handling");
             }
             else
             {
@@ -310,12 +323,20 @@ namespace GravyLang
                         itr.MoveNext(); //move to '/' 
                         return true;
                     }
-                    //return itr.Equals("*/");
-                    //return '*'.Equals(itr.Current()) && '/'.Equals(itr.PeekForward(1));
                 }
             }
             
             return false;
+        }
+
+        private static string PopString(StringBuilder builder)
+        {
+            if (builder.Length == 0)
+                throw new NullReferenceException();
+
+            string result = builder.ToString();
+            builder.Clear();
+            return result;
         }
 
         private static string TrimWhiteSpace(string input, Itr itr)
