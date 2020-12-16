@@ -33,7 +33,7 @@ namespace GravyLang
             {
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
-            foreach (string str in lexer2.Lex2("some other?thing*/onlythingonthisline ///* //something */"))
+            foreach (string str in lexer2.Lex2("some other?thing*/onlythingonthisline///* //something */"))
             {
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }

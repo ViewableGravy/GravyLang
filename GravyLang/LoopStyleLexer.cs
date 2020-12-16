@@ -183,7 +183,7 @@ namespace GravyLang
                 new Delimiter() {
                     toMatch = "if",
                     PreMatch = new[] { " ", "(", "else" },
-                    PostMatch = new[] { "\\w" }
+                    PostMatch = new[] { @"[^\S\d\w]" }
                 }
                 //new Delimiter() {
                 //    toMatch = "else",
