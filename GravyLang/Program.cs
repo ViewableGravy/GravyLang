@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GravyLang.IteratorLexer;
+using System;
 using System.Collections.Generic;
 
 namespace GravyLang
@@ -29,11 +30,23 @@ namespace GravyLang
             }
 
             Console.WriteLine("-------------Start of lexer 3--------------");
-            foreach (string str in lexer2.Lex2("and?????this(us)/*something*/after/*"))
+            IteratorLexer.IteratorLexer lexer3 = new IteratorLexer.IteratorLexer();
+            foreach (string str in lexer3.Lex("and?????this(us)/*something*/after/*"))
             {
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
-            foreach (string str in lexer2.Lex2("some other?thing*/onlythingonthisline///* //something */"))
+
+            foreach (string str in lexer3.Lex("some other?thing*/onlythingonthisline///* //something */"))
+            {
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+            }
+
+            foreach (string str in lexer3.Lex("if some _if_ if ( if(if( if("))
+            {
+                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+            }
+
+            foreach (string str in lexer3.Lex("for for( (for) foreach( foreach("))
             {
                 Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
             }
