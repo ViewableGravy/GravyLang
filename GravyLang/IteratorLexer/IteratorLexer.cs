@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -47,6 +48,7 @@ namespace GravyLang.IteratorLexer
 
         public IEnumerable Lex(string input)
         {
+            yield return GetWhiteSpace(input);
             itr.Line = TrimWhiteSpace(input, itr);
 
             while (itr.MoveNext())
@@ -67,11 +69,126 @@ namespace GravyLang.IteratorLexer
                         break;
                 }
             }
-
             itr.Reset();
+
+            if (itr.Mode == LexerMode.String)
+                yield return "+";
+            yield return @"\n";
         }
 
-        private bool MatchDelimiter(Delimiter[] delimiters, Itr itr)
+        private IEnumerable<string> NormalMode(Itr itr)
+        {
+            if (!SwitchMode(itr.Mode))
+            {
+                if (' '.Equals(itr.Current()))
+                {
+                    if (currentItem.Length > 0)
+                        yield return PopString(currentItem);
+                }
+                else
+                    if (MatchDelimiter(__Updated_Delimiters__, itr))
+                {
+                    if (currentItem.Length > 0)
+                        yield return PopString(currentItem);
+                    yield return itr.Current().ToString();
+                }
+                else
+                    currentItem.Append(itr.Current());
+                if (itr.IsFinalIndex() && currentItem.Length > 0)
+                    yield return PopString(currentItem);
+            }
+            else
+                if (itr.Current() != ' ' && currentItem.Length > 0)
+                yield return PopString(currentItem);
+
+        }
+
+        private IEnumerable StringMode(Itr itr)
+        {
+            if (currentItem.Length == 0)
+                currentItem.Append('"');
+            currentItem.Append(itr.Current());
+            if (SwitchMode(itr.Mode))
+            {
+                yield return PopString(currentItem);
+            }
+            else
+            {
+                if (itr.IsFinalIndex())
+                {
+                    currentItem.Append('"');
+                    yield return PopString(currentItem);
+                }
+                    
+
+            }
+                
+        }
+
+        private void CommentMode(Itr itr)
+        {
+            SwitchMode(itr.Mode);
+        }
+
+        /// <summary>
+        /// Switches lexing mode if necessary, returns true if switch was performed
+        /// </summary>
+        private bool SwitchMode(LexerMode mode)
+        {
+            if (mode == LexerMode.Normal)
+            {
+                if ('"'.Equals(itr.Current()))
+                {
+                    itr.Mode = LexerMode.String;
+                    return true;
+                }
+                if ('/'.Equals(itr.Current()))
+                {
+                    if ('/'.Equals(itr.Peek(1)))
+                    {
+                        itr.Mode = LexerMode.Comment;
+                        return true;
+                    }
+                    if ('*'.Equals(itr.Peek(1)))
+                    {
+                        itr.Mode = LexerMode.MultiComment;
+                        return true;
+                    }
+                }
+            }
+            else if (mode == LexerMode.String)
+            {
+                if(itr.Current() == '"')
+                {
+                    itr.Mode = LexerMode.Normal;
+                    return true;
+                }
+            }
+            else
+            {
+                if (mode == LexerMode.Comment)
+                {
+                    if (itr.IsFinalIndex())
+                    {
+                        itr.Mode = LexerMode.Normal;
+                        return true;
+                    }
+                }
+                else if (mode == LexerMode.MultiComment)
+                {
+                    if (itr == "*/")
+                    {
+                        itr.Mode = LexerMode.Normal;
+                        itr.MoveNext(); //move to '/' 
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool MatchDelimiter(Delimiter[] delimiters, Itr itr)
         {
             foreach (Delimiter del in delimiters)
             {
@@ -127,97 +244,6 @@ namespace GravyLang.IteratorLexer
             return false;
         }
 
-        private IEnumerable<string> NormalMode(Itr itr)
-        {
-            if (!SwitchMode(itr.Mode))
-            {
-                if (' '.Equals(itr.Current()))
-                {
-                    if (currentItem.Length > 0)
-                        yield return PopString(currentItem);
-                }
-                else
-                    if (MatchDelimiter(__Updated_Delimiters__, itr))
-                {
-                    if (currentItem.Length > 0)
-                        yield return PopString(currentItem);
-                    yield return itr.Current().ToString();
-                }
-                else
-                    currentItem.Append(itr.Current());
-                if (itr.IsFinalIndex() && currentItem.Length > 0)
-                    yield return PopString(currentItem);
-            }
-            else
-                if (itr.Current() != ' ' && currentItem.Length > 0)
-                yield return PopString(currentItem);
-
-        }
-
-        private IEnumerable StringMode(Itr itr)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void CommentMode(Itr itr)
-        {
-            SwitchMode(itr.Mode);
-        }
-
-        /// <summary>
-        /// Switches lexing mode if necessary, returns true if switch was performed
-        /// </summary>
-        private bool SwitchMode(LexerMode mode)
-        {
-            if (mode == LexerMode.Normal)
-            {
-                if ('"'.Equals(itr.Current()))
-                {
-                    itr.Mode = LexerMode.String;
-                    return true;
-                }
-                if ('/'.Equals(itr.Current()))
-                {
-                    if ('/'.Equals(itr.Peek(1)))
-                    {
-                        itr.Mode = LexerMode.Comment;
-                        return true;
-                    }
-                    if ('*'.Equals(itr.Peek(1)))
-                    {
-                        itr.Mode = LexerMode.MultiComment;
-                        return true;
-                    }
-                }
-            }
-            else if (mode == LexerMode.String)
-            {
-                throw new NotImplementedException("Have not implemented string handling");
-            }
-            else
-            {
-                if (mode == LexerMode.Comment)
-                {
-                    if (itr.IsFinalIndex())
-                    {
-                        itr.Mode = LexerMode.Normal;
-                        return true;
-                    }
-                }
-                else if (mode == LexerMode.MultiComment)
-                {
-                    if (itr == "*/")
-                    {
-                        itr.Mode = LexerMode.Normal;
-                        itr.MoveNext(); //move to '/' 
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         private static string PopString(StringBuilder builder)
         {
             if (builder.Length == 0)
@@ -228,13 +254,20 @@ namespace GravyLang.IteratorLexer
             return result;
         }
 
+        private static string GetWhiteSpace(string input)
+        {
+            if (input == null)
+                throw new NullReferenceException("input cannot be null");
+            int indentation = 0;
+            for(int i = 0; input[i] == ' '; ++i)
+                indentation++;
+            return indentation.ToString();
+        }
         private static string TrimWhiteSpace(string input, Itr itr)
         {
             if (input == null)
                 throw new NullReferenceException("input cannot be null");
-            if (itr.Mode != LexerMode.String)
-                return input.TrimStart();
-            return input;
+            return input.TrimStart();
         }
     }
 }

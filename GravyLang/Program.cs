@@ -33,23 +33,39 @@ namespace GravyLang
             IteratorLexer.IteratorLexer lexer3 = new IteratorLexer.IteratorLexer();
             foreach (string str in lexer3.Lex("and?????this(us)/*something*/after/*"))
             {
-                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+                Console.Write("[" + @str + "]");
             }
+            Console.WriteLine();
 
             foreach (string str in lexer3.Lex("some other?thing*/onlythingonthisline///* //something */"))
             {
-                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+                Console.Write("[" + @str + "]");
             }
+            Console.WriteLine();
 
             foreach (string str in lexer3.Lex("if some _if_ if ( if(if( if("))
             {
-                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+                Console.Write("[" + @str + "]");
             }
+            Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("for for( (for) foreach( foreach("))
+            foreach (string str in lexer3.Lex("  for for( (for) foreach( foreach("))
             {
-                Console.WriteLine("[" + (str == "\n" ? "\\n" : str) + "]");
+                Console.Write("[" + @str + "]");
             }
+            Console.WriteLine();
+
+            foreach (string str in lexer3.Lex("    \"this is a string\" and+\"this is"))
+            {
+                Console.Write("[" + @str + "]");
+            }
+            Console.WriteLine();
+
+            foreach (string str in lexer3.Lex("         a multi line string\""))
+            {
+                Console.Write("[" + @str + "]");
+            }
+            Console.WriteLine();
 
         }
     }
