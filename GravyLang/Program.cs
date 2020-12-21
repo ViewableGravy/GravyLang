@@ -31,42 +31,49 @@ namespace GravyLang
 
             Console.WriteLine("-------------Start of lexer 3--------------");
             IteratorLexer.IteratorLexer lexer3 = new IteratorLexer.IteratorLexer();
-            foreach (string str in lexer3.Lex("and?????this(us)/*something*/after/*"))
+            Tokenizer tokenizer = new Tokenizer();
+
+            foreach (string str in lexer3.GenerateLexemes("and?????this(us)/*something*/after/*"))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("some other?thing*/onlythingonthisline///* //something */"))
+            foreach (string str in lexer3.GenerateLexemes("some other?thing*/onlythingonthisline///* //something */"))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("if some _if_ if ( if(if( if("))
+            foreach (string str in lexer3.GenerateLexemes("if some _if_ if ( if(if( if("))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("  for for( (for) foreach( foreach("))
+            foreach (string str in lexer3.GenerateLexemes("  for for( (for) foreach( foreach("))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("    \"this is a string\" and+\"this is"))
+            foreach (string str in lexer3.GenerateLexemes("    \"this is a string\" and++\"this is"))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
-            foreach (string str in lexer3.Lex("         a multi line string\""))
+            foreach (string str in lexer3.GenerateLexemes("  //comment /*comment*/       a multi line string\""))
             {
-                Console.Write("[" + @str + "]");
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
             }
             Console.WriteLine();
 
+            foreach (string str in lexer3.GenerateLexemes(" \" \\n\\r \\n \\r \""))
+            {
+                Console.Write("[" + tokenizer.GetToken(@str) + ", " + @str + "]");
+            }
+            Console.WriteLine();
         }
     }
 }

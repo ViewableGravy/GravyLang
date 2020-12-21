@@ -11,8 +11,11 @@ namespace GravyLang.IteratorLexer
     {
         Itr itr = new Itr();
         StringBuilder currentItem = new StringBuilder();
-
-        Delimiter[] __Updated_Delimiters__ = {
+        
+        //sort from longest to shortest
+        readonly Delimiter[] __Updated_Delimiters__ =
+            {
+                new Delimiter() { toMatch = "!="},
                 new Delimiter() { toMatch = "(" },
                 new Delimiter() { toMatch = ")" },
                 new Delimiter() { toMatch = "=" },
@@ -46,7 +49,7 @@ namespace GravyLang.IteratorLexer
                 }
             };
 
-        public IEnumerable Lex(string input)
+        public IEnumerable GenerateLexemes(string input)
         {
             yield return GetWhiteSpace(input);
             itr.Line = TrimWhiteSpace(input, itr);
@@ -109,9 +112,7 @@ namespace GravyLang.IteratorLexer
                 currentItem.Append('"');
             currentItem.Append(itr.Current());
             if (SwitchMode(itr.Mode))
-            {
                 yield return PopString(currentItem);
-            }
             else
             {
                 if (itr.IsFinalIndex())
@@ -119,8 +120,11 @@ namespace GravyLang.IteratorLexer
                     currentItem.Append('"');
                     yield return PopString(currentItem);
                 }
-                    
-
+                else if('\\'.Equals(itr.Current()))
+                {
+                    currentItem.Append(itr.Peek(1));
+                    itr.MoveNext(); //don't check next character since already added
+                }
             }
                 
         }
