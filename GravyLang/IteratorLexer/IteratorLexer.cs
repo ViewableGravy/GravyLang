@@ -11,43 +11,42 @@ namespace GravyLang.IteratorLexer
     {
         Itr itr = new Itr();
         StringBuilder currentItem = new StringBuilder();
-        
-        //sort from longest to shortest
+
+        //note to self: Create separate logic for checking double + delimiters that are symbols, + separate array
         readonly Delimiter[] __Updated_Delimiters__ =
+        {
+            new Delimiter() { toMatch = "(" },
+            new Delimiter() { toMatch = ")" },
+            new Delimiter() { toMatch = "=" },
+            new Delimiter() { toMatch = "+" },
+            new Delimiter() { toMatch = "/" },
+            new Delimiter() { toMatch = "-" },
+            new Delimiter() { toMatch = "*" },
+            new Delimiter() { toMatch = "!" },
+            new Delimiter() { toMatch = "?" },
+            new Delimiter() { toMatch = "[" },
+            new Delimiter() { toMatch = "]" },
+            new Delimiter() { toMatch = ":" },
+            new Delimiter() { toMatch = ";" },
+            new Delimiter()
             {
-                new Delimiter() { toMatch = "!="},
-                new Delimiter() { toMatch = "(" },
-                new Delimiter() { toMatch = ")" },
-                new Delimiter() { toMatch = "=" },
-                new Delimiter() { toMatch = "+" },
-                new Delimiter() { toMatch = "/" },
-                new Delimiter() { toMatch = "-" },
-                new Delimiter() { toMatch = "*" },
-                new Delimiter() { toMatch = "!" },
-                new Delimiter() { toMatch = "?" },
-                new Delimiter() { toMatch = "." },
-                new Delimiter() { toMatch = "[" },
-                new Delimiter() { toMatch = "]" },
-                new Delimiter() { toMatch = ":" },
-                new Delimiter() { toMatch = ";" },
-                new Delimiter() {
-                    toMatch = "if",
-                    RegexPreMatch = @"[^\S\d\w]",
-                    RegexPostMatch =  @"[^\S\d\w]"
-                },
-                new Delimiter()
-                {
-                    toMatch = "for",
-                    RegexPreMatch = @"[^\S\d\w]",
-                    RegexPostMatch = @"[^\S\d\w]"
-                },
-                new Delimiter()
-                {
-                    toMatch = "foreach",
-                    RegexPreMatch = @"[^\S\d\w]",
-                    RegexPostMatch = @"[^\S\d\w]"
-                }
-            };
+                toMatch = ".",
+                RegexPreMatch = @"[^\d]",
+                RegexPostMatch =  @"[^\d]"
+            },
+        };
+
+        readonly Delimiter[] __multi_symbol_delimiters__ =
+        {
+            new Delimiter() { toMatch = "!=" },
+            new Delimiter() { toMatch = "==" },
+            new Delimiter() { toMatch = "+=" },
+            new Delimiter() { toMatch = "-=" },
+            new Delimiter() { toMatch = "/=" },
+            new Delimiter() { toMatch = "*=" },
+            new Delimiter() { toMatch = "++" },
+            new Delimiter() { toMatch = "--" },
+        };
 
         public IEnumerable GenerateLexemes(string input)
         {
@@ -88,8 +87,15 @@ namespace GravyLang.IteratorLexer
                     if (currentItem.Length > 0)
                         yield return PopString(currentItem);
                 }
-                else
-                    if (MatchDelimiter(__Updated_Delimiters__, itr))
+                else if (MatchMultiSymbolDelimiter(__multi_symbol_delimiters__, itr))
+                {
+                    if (currentItem.Length > 0)
+                        yield return PopString(currentItem);
+                    currentItem.Append(itr.Current());
+                    currentItem.Append(itr.Peek(1));
+                    itr.MoveNext();
+                }
+                else if (MatchDelimiter(__Updated_Delimiters__, itr))
                 {
                     if (currentItem.Length > 0)
                         yield return PopString(currentItem);
@@ -100,8 +106,7 @@ namespace GravyLang.IteratorLexer
                 if (itr.IsFinalIndex() && currentItem.Length > 0)
                     yield return PopString(currentItem);
             }
-            else
-                if (itr.Current() != ' ' && currentItem.Length > 0)
+            else if (itr.Current() != ' ' && currentItem.Length > 0)
                 yield return PopString(currentItem);
 
         }
@@ -225,7 +230,7 @@ namespace GravyLang.IteratorLexer
                 {
                     if (itr.IsFirstIndex())
                         return false;
-                    if (del.PreMatch.Length > 0 && Regex.IsMatch(itr.Peek(-1).ToString(), del.PreMatch[0]))
+                    if (!Regex.IsMatch(itr.Peek(-1).ToString(), del.RegexPreMatch))
                         continue;
                 }
                 else if (del.PreMatch != null)
@@ -248,6 +253,18 @@ namespace GravyLang.IteratorLexer
             return false;
         }
 
+        private static bool MatchMultiSymbolDelimiter(Delimiter[] delimiters, Itr itr)
+        {
+            foreach (Delimiter del in delimiters)
+            {
+                if(itr == del.toMatch)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static string PopString(StringBuilder builder)
         {
             if (builder.Length == 0)
@@ -262,11 +279,14 @@ namespace GravyLang.IteratorLexer
         {
             if (input == null)
                 throw new NullReferenceException("input cannot be null");
+            if (string.IsNullOrEmpty(input))
+                return "0";
             int indentation = 0;
             for(int i = 0; input[i] == ' '; ++i)
                 indentation++;
             return indentation.ToString();
         }
+
         private static string TrimWhiteSpace(string input, Itr itr)
         {
             if (input == null)

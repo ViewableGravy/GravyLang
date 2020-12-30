@@ -1,0 +1,6 @@
+﻿Console.Writeline("hello world");
+if (true != true)
+    Console.Writeline("Would you believe this is true");
+    return;
+else
+    return 3.14

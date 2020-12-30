@@ -54,7 +54,8 @@ namespace GravyLang.IteratorLexer
             "*",
             "%",
             "=",
-            "?"
+            "?",
+            "."
         };
         private string[] literal = new[]
         {
