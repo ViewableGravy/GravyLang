@@ -4,6 +4,7 @@ A spare time project where I attempt to create a programming language
 ## Todo:
 ### Lexer (single line)
   1. Handle numbers with decimal places (directly touching words)
+  
      e.g. some6.7teen -> some6, ., 7teen.
   3. add more delimiters and coverage
   4. add test coverage for new lexer
