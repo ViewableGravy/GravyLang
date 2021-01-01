@@ -12,15 +12,12 @@ namespace GravyLang.IteratorLexer
 
         public IEnumerable LexFile(string file)
         {
-            
-            StreamReader streamReader = new StreamReader(file);
+            using StreamReader streamReader = new StreamReader(file);
             string line = "";
             while ((line = streamReader.ReadLine()) != null)
-                foreach(string str in iterator.GenerateLexemes(line))
+                foreach (string str in iterator.GenerateLexemes(line))
                     yield return new Token(tokenizer.GetToken(str), str);
         }
     }
-
-    
 
 }

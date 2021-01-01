@@ -11,17 +11,12 @@ namespace GravyLang
             Console.WriteLine("-------------Start of multi-line lexer--------------");
             MultiLineLexer lexer = new MultiLineLexer();
 
-            int i = 0;
             foreach(Token token in lexer.LexFile("LexerTester.txt"))
             {
-                if(i == 10)
-                {
-                    i = 0;
+                if(token.Value == @"\n")
                     Console.WriteLine("[" + token.Classification + ", " + token.Value + "]");
-                }
                 else
                     Console.Write("[" + token.Classification + ", " + token.Value + "]");
-                ++i;
             }
 
         }

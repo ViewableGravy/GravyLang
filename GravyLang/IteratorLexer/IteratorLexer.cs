@@ -28,12 +28,9 @@ namespace GravyLang.IteratorLexer
             new Delimiter() { toMatch = "]" },
             new Delimiter() { toMatch = ":" },
             new Delimiter() { toMatch = ";" },
-            new Delimiter()
-            {
-                toMatch = ".",
-                RegexPreMatch = @"[^\d]",
-                RegexPostMatch =  @"[^\d]"
-            },
+            new Delimiter() { toMatch = "%" },
+            new Delimiter() { toMatch = "&" },
+            new Delimiter() { toMatch = "$" }
         };
 
         readonly Delimiter[] __multi_symbol_delimiters__ =
@@ -87,7 +84,13 @@ namespace GravyLang.IteratorLexer
                     if (currentItem.Length > 0)
                         yield return PopString(currentItem);
                 }
-                else if (MatchMultiSymbolDelimiter(__multi_symbol_delimiters__, itr))
+                else if(SplitOnDot(itr))
+                {
+                    if (currentItem.Length > 0)
+                        yield return PopString(currentItem);
+                    yield return itr.Current().ToString();
+                }
+                else if (MatchDoubleSymbolDelimiter(__multi_symbol_delimiters__, itr))
                 {
                     if (currentItem.Length > 0)
                         yield return PopString(currentItem);
@@ -253,15 +256,40 @@ namespace GravyLang.IteratorLexer
             return false;
         }
 
-        private static bool MatchMultiSymbolDelimiter(Delimiter[] delimiters, Itr itr)
+        private static bool SplitOnDot(Itr itr)
         {
-            foreach (Delimiter del in delimiters)
+            if (itr == ".")
             {
-                if(itr == del.toMatch)
-                {
+                if (itr.IsFirstIndex() || itr.Peek(-1) == ' ') //dot is first index or white space
+                    if (!itr.IsFinalIndex()) //not final index
+                        if (Regex.IsMatch(itr.Peek(1).ToString(), @"[\d]")) //digit
+                            return false;
+
+                if (itr.IsFirstIndex()|| itr.Peek(-1) == '.')
                     return true;
+
+                if (Regex.IsMatch(itr.Peek(-1).ToString(), @"[\d]")) //if it's got a digit before
+                {
+                    int i = -2;
+                    while (true)
+                    {
+                        if (Regex.IsMatch(itr.Peek(i).ToString(), @"[\D]")) //not a digit
+                            if (Regex.IsMatch(itr.Peek(i).ToString(), @"[\w]")) //is a word character
+                                return true;
+
+                        if (itr.Index + --i < 0)
+                            break;
+                    }
                 }
             }
+            return false;
+        }
+
+        private static bool MatchDoubleSymbolDelimiter(Delimiter[] delimiters, Itr itr)
+        {
+            foreach (Delimiter del in delimiters)
+                if(itr == del.toMatch)
+                    return true;
             return false;
         }
 
